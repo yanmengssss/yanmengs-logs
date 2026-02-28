@@ -1,8 +1,8 @@
 export interface LogsClientConfig {
   /**
-   * The application key (required)
+   * The project key (required)
    */
-  appKey: string;
+  projectKey: string;
   /**
    * The table key (required)
    */
@@ -14,7 +14,7 @@ export interface LogsClientConfig {
 }
 
 export default class LogsClient {
-  private appKey: string;
+  private projectKey: string;
   private tableKey: string;
   private baseUrl: string;
 
@@ -22,15 +22,15 @@ export default class LogsClient {
    * Initialize the logs client
    * @param config Configuration object
    */
-  constructor({ appKey, tableKey, baseUrl }: LogsClientConfig) {
-    if (!appKey) {
-      throw new Error("appKey is required");
+  constructor({ projectKey, tableKey, baseUrl }: LogsClientConfig) {
+    if (!projectKey) {
+      throw new Error("projectKey is required");
     }
     if (!tableKey) {
       throw new Error("tableKey is required");
     }
 
-    this.appKey = appKey;
+    this.projectKey = projectKey;
     this.tableKey = tableKey;
     // Remove trailing slash if present
     this.baseUrl = (baseUrl || "http://localhost:3000").replace(/\/$/, "");
@@ -49,7 +49,7 @@ export default class LogsClient {
     }
 
     const url = `${this.baseUrl}/api/logs/report`;
-    
+
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -57,10 +57,13 @@ export default class LogsClient {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          appKey: this.appKey,
+          projectKey: this.projectKey,
           tableKey: this.tableKey,
           messageType,
-          content,
+          data: {
+            ...(typeof content === 'object' ? content : { message: content }),
+            timestamp: new Date().toISOString()
+          },
         }),
       });
 
